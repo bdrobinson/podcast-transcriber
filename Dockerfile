@@ -8,8 +8,10 @@ FROM python:3.9.0
 RUN apt update -y && apt install ffmpeg -y
 RUN pip install openai-whisper
 RUN pip install podcastparser
+RUN pip install requests
 
 COPY transcribe-url.sh ./transcribe-url.sh
+COPY podcast-transcriber.py ./podcast-transcriber.py
 
 # run model
-ENTRYPOINT ["./transcribe-url.sh"]
+ENTRYPOINT ["python", "./podcast-transcriber.py"]
