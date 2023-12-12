@@ -10,7 +10,6 @@ RUN pip install openai-whisper
 RUN pip install podcastparser
 RUN pip install requests
 
-COPY transcribe-url.sh ./transcribe-url.sh
 COPY podcast-transcriber.py ./podcast-transcriber.py
 
 # run model
