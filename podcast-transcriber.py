@@ -9,17 +9,49 @@ import os
 from os import path
 import subprocess
 
-def main():
-    feedurl = sys.argv[1]
+OUTPUT_DIR = "/output"
 
+def main():
+    command = sys.argv[1]
+    if command == "download":
+        download(sys.argv[2])
+    elif command == "combine":
+        combine(sys.argv[2])
+
+def combine(feedurl):
+    print("Downloading and parsing podcast...")
+    parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl))
+    file_contents = ""
+    for episode in parsed["episodes"]:
+        title = episode["title"] 
+        print(title)
+        guid = parse_guid(episode["guid"])
+        description = episode["description"]
+        # published_ts = episode["published"]
+        preacher = episode["itunes_author"]
+        text_path = path.join(OUTPUT_DIR, guid, f"{guid}.txt")
+        print(text_path)
+        if os.path.exists(text_path):
+            with open(text_path, "r") as f:
+                text = f.read()
+                file_contents += f"""
+
+Sermon Title: {title}
+Sermon Description: {description}
+Sermon Preacher: {preacher}
+Sermon Transcript:
+{text}
+"""
+    with open(path.join(OUTPUT_DIR, "combined.txt"), 'w') as f:
+        f.write(file_contents)
+
+def download(feedurl):
     print("Downloading and parsing podcast...")
     parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl))
 
-    OUTPUT_DIR = "/output"
-
     for episode in parsed["episodes"]:
         title = episode["title"]
-        guid = urllib.parse.quote_plus(episode["guid"]) # urlencode as we'll be using it for file stuff
+        guid = parse_guid(episode["guid"]) # urlencode as we'll be using it for file stuff
         url = episode["enclosures"][0]["url"]
         print(f"Handling episode \"{title}\" with guid {guid}")
 
@@ -53,6 +85,9 @@ def download_file(url, destination):
 
 def transcribe_audio(audio_file_path, output_dir):
     subprocess.run(["whisper", audio_file_path, "--model", "tiny.en", "-o", output_dir, "--verbose", "False"])
+
+def parse_guid(raw_guid):
+    return urllib.parse.quote_plus(raw_guid).replace(".", "_")
 
 if __name__ == "__main__":
     main()
