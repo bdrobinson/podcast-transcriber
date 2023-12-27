@@ -8,7 +8,6 @@ import pprint
 import os
 from os import path
 import subprocess
-import json
 
 OUTPUT_DIR = "/output"
 
@@ -22,26 +21,29 @@ def main():
 def combine(feedurl):
     print("Downloading and parsing podcast...")
     parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl))
-    sermons = []
+    file_contents = ""
     for episode in parsed["episodes"]:
         title = episode["title"] 
+        print(title)
         guid = parse_guid(episode["guid"])
         description = episode["description"]
-        published_ts = episode["published"]
+        # published_ts = episode["published"]
         preacher = episode["itunes_author"]
         text_path = path.join(OUTPUT_DIR, guid, f"{guid}.txt")
+        print(text_path)
         if os.path.exists(text_path):
             with open(text_path, "r") as f:
                 text = f.read()
-                sermons.append({
-                    "title": title,
-                    "description": description,
-                    "preacher": preacher,
-                    "published_timestamp": published_ts,
-                    "transcript": text
-                })
-    with open(path.join(OUTPUT_DIR, "sermons.json"), 'w') as f:
-        f.write(json.dumps(sermons))
+                file_contents += f"""
+
+Sermon Title: {title}
+Sermon Description: {description}
+Sermon Preacher: {preacher}
+Sermon Transcript:
+{text}
+"""
+    with open(path.join(OUTPUT_DIR, "combined.txt"), 'w') as f:
+        f.write(file_contents)
 
 def download(feedurl):
     print("Downloading and parsing podcast...")
